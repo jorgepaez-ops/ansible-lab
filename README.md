@@ -17,7 +17,6 @@ ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_ansible
 Dockerfile → Define la imagen base para los nodos.
 docker-compose.yml → Levanta 3 contenedores como nodos (node1, node2, node3) y la red virtual.
 inventory.ini → Inventario de Ansible usando llaves SSH.
-ansible.cfg → Configuración básica de Ansible.
 playbook.yml → Ejemplo de playbook para instalar paquetes (htop, curl).
 
 ## Levantar nodos Docker
