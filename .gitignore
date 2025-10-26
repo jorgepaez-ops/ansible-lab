@@ -1,0 +1,41 @@
+# ===========================
+# Llaves y secretos
+# ===========================
+*.pem
+*.key
+id_rsa_ansible
+id_rsa_ansible.pub
+*.env
+*.vault
+
+# ===========================
+# Contenedores y datos temporales
+# ===========================
+node1/
+node2/
+node3/
+*.log
+*.tmp
+*.bak
+
+# ===========================
+# Cachés y compilados
+# ===========================
+__pycache__/
+*.pyc
+*.pyo
+*.swp
+
+# ===========================
+# Configuración de editores
+# ===========================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ===========================
+# Otros archivos del sistema
+# ===========================
+.DS_Store
+Thumbs.db

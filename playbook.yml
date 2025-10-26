@@ -1,0 +1,26 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Instalar htop
+      apt:
+        name: htop
+        state: present
+        update_cache: yes
+
+    - name: Instalar curl
+      apt:
+        name: curl
+        state: present
+- hosts: all
+  become: yes
+  tasks:
+    - name: Instalar htop
+      apt:
+        name: htop
+        state: present
+        update_cache: yes
+
+    - name: Instalar curl
+      apt:
+        name: curl
+        state: present
