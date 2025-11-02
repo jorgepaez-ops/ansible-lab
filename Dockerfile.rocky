@@ -6,6 +6,7 @@ RUN dnf install -y \
     && echo 'root:root' | chpasswd \
     && sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config \
     && sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
+ssh-keygen -A
 
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
