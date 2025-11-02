@@ -1,12 +1,21 @@
 FROM rockylinux:9
 
-RUN dnf install -y \
-    openssh-server sudo python3 \
-    && mkdir /var/run/sshd \
-    && echo 'root:root' | chpasswd \
-    && sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config \
-    && sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
-ssh-keygen -A
+# Actualiza e instala lo necesario (incluye utilidades de debugging y fastfetch)
+RUN dnf -y update && \
+    dnf -y install openssh-server sudo python3 fastfetch procps-ng iproute net-tools && \
+    # Crear directorio runtime para sshd (asegura que exista)
+    mkdir -p /var/run/sshd && \
+    # Setear contraseña root (solo para laboratorio)
+    echo 'root:root' | chpasswd && \
+    # Permitir login root por contraseña (solo lab)
+    sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    # Evitar error pam_loginuid en contenedores
+    sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd || true && \
+    # Generar host keys para sshd (imprescindible)
+    ssh-keygen -A && \
+    # Mostrar fastfetch al login root
+    echo 'fastfetch' >> /root/.bashrc && \
+    dnf clean all
 
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
