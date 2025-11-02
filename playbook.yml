@@ -1,26 +1,32 @@
-- hosts: all
+#- hosts: all
+#  become: true
+#  tasks:
+#    - name: Instalar htop
+#      apt:
+#        name: htop
+#        state: present
+#        update_cache: yes
+#
+#    - name: Instalar curl
+#      apt:
+#        name: curl
+#        state: present
+#- hosts: all
+#  become: true
+#  tasks:
+#    - name: Instalar htop
+#      apt:
+#        name: htop
+#        state: present
+#        update_cache: yes
+#
+#    - name: Instalar curl
+#      apt:
+#        name: curl
+#        state: present
+---
+- name: Configurar nodos base
+  hosts: all
   become: true
-  tasks:
-    - name: Instalar htop
-      apt:
-        name: htop
-        state: present
-        update_cache: yes
-
-    - name: Instalar curl
-      apt:
-        name: curl
-        state: present
-- hosts: all
-  become: true
-  tasks:
-    - name: Instalar htop
-      apt:
-        name: htop
-        state: present
-        update_cache: yes
-
-    - name: Instalar curl
-      apt:
-        name: curl
-        state: present
+  roles:
+    - base

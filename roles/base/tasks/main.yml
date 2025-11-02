@@ -1,0 +1,20 @@
+---
+# roles/base/tasks/main.yml
+
+- name: Actualizar repositorios APT
+  apt:
+    update_cache: yes
+
+- name: Instalar utilidades básicas
+  apt:
+    name:
+      - htop
+      - curl
+      - vim
+    state: present
+  notify: Reiniciar servicio SSH
+
+- name: Personalizar mensaje de login
+  template:
+    src: motd.j2
+    dest: /etc/motd
