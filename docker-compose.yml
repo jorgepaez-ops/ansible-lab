@@ -2,29 +2,43 @@ version: "3.9"
 
 services:
   node1:
-    build: .
-    container_name: node1
-    hostname: node1
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu
+    container_name: ServerUbuntu24.04
+    hostname: ServerUbuntu24.04
     ports:
       - "2221:22"
+    mem_limit: 512m
+    cpus: 0.5
     networks:
       - ansible-net
 
   node2:
-    build: .
-    container_name: node2
-    hostname: node2
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu
+      args:
+        UBUNTU_VERSION: "22.04"
+    container_name: ServerUbuntu22.04
+    hostname: ServerUbuntu22.04
     ports:
       - "2222:22"
+    mem_limit: 512m
+    cpus: 0.5
     networks:
       - ansible-net
 
   node3:
-    build: .
-    container_name: node3
-    hostname: node3
+    build:
+      context: .
+      dockerfile: Dockerfile.rocky
+    container_name: ServerRocky9
+    hostname: ServerRocky9
     ports:
       - "2223:22"
+    mem_limit: 512m
+    cpus: 0.5
     networks:
       - ansible-net
 
