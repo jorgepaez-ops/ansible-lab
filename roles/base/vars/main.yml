@@ -1,0 +1,18 @@
+---
+# Paquetes base para cada sistema operativo
+
+base_packages_ubuntu:
+  - vim
+  - curl
+  - wget
+  - net-tools
+  - iproute2
+  - sudo
+
+base_packages_redhat:
+  - vim
+  - curl
+  - wget
+  - net-tools
+  - iproute
+  - sudo
