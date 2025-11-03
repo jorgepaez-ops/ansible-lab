@@ -8,3 +8,4 @@
   dnf:
     name: "{{ base_packages_redhat }}"
     state: present
+    allowerasing: yes
