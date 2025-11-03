@@ -1,21 +1,25 @@
+# Imagen base: Rocky Linux 9 (versión ligera y estable)
 FROM rockylinux:9
-
-# Actualiza e instala lo necesario (incluye utilidades de debugging y fastfetch)
-RUN dnf -y update && \
-    dnf -y install openssh-server sudo python3 fastfetch procps-ng iproute net-tools && \
-    # Crear directorio runtime para sshd (asegura que exista)
-    mkdir -p /var/run/sshd && \
-    # Setear contraseña root (solo para laboratorio)
+# Actualizamos los paquetes e instalamos:
+# - openssh-server → servidor SSH
+# - sudo → requerido por Ansible o tareas con privilegios
+# - python3 → necesario para la comunicación con Ansible
+RUN dnf update -y && \
+    dnf install -y openssh-server openssh-clients sudo python3 && \
+    dnf clean all && \
+    # Creamos el directorio donde SSH guarda su PID
+    mkdir /var/run/sshd && \
+    # Establecemos la contraseña del usuario root (clave: root)
     echo 'root:root' | chpasswd && \
-    # Permitir login root por contraseña (solo lab)
-    sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-    # Evitar error pam_loginuid en contenedores
-    sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd || true && \
-    # Generar host keys para sshd (imprescindible)
+    # Permitimos el acceso SSH como root
+    sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    # Habilitamos la autenticación por contraseña
+    sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    # Generamos las claves del host SSH (evita el error "no hostkeys available")
     ssh-keygen -A && \
-    # Mostrar fastfetch al login root
-    echo 'fastfetch' >> /root/.bashrc && \
-    dnf clean all
-
+    # Añadimos un mensaje simple al iniciar sesión
+    echo 'echo "Welcome to Rocky Linux 9"' >> /root/.bashrc
+# Exponemos el puerto 22 para conexiones SSH
 EXPOSE 22
+# Iniciamos el servicio SSH en primer plano (modo daemon)
 CMD ["/usr/sbin/sshd", "-D"]
