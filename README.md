@@ -72,6 +72,13 @@ docker logs <container>
 
 Limpiar `known_hosts` para evitar errores de “REMOTE HOST IDENTIFICATION HAS CHANGED”:
 
+Si usas localhost como host
+```bash
+ssh-keygen -f ~/.ssh/known_hosts -R '[localhost]:2221'
+ssh-keygen -f ~/.ssh/known_hosts -R '[localhost]:2222'
+ssh-keygen -f ~/.ssh/known_hosts -R '[localhost]:2223'
+```
+(Opcional) Si usas 127.0.0.1 en lugar de localhost
 ```bash
 ssh-keygen -f ~/.ssh/known_hosts -R '[127.0.0.1]:2221'
 ssh-keygen -f ~/.ssh/known_hosts -R '[127.0.0.1]:2222'
