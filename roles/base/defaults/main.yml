@@ -1,0 +1,11 @@
+# roles/base/defaults/main.yml
+---
+
+# Mostrar banner de bienvenida
+enable_motd: true
+
+# Comando para mostrar información del sistema
+motd_command: "neofetch"
+
+# Habilitar instalación de utilidades adicionales (por tag)
+install_extra_utils: false
