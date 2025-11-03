@@ -1,0 +1,10 @@
+# roles/base/tasks/ubuntu.yml
+---
+- name: Actualizar cache de APT
+  apt:
+    update_cache: yes
+
+- name: Instalar paquetes base (Debian/Ubuntu)
+  apt:
+    name: "{{ base_packages_ubuntu }}"
+    state: present

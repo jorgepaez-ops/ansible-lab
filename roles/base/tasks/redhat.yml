@@ -1,0 +1,10 @@
+# roles/base/tasks/redhat.yml
+---
+- name: Actualizar cache de DNF
+  dnf:
+    update_cache: yes
+
+- name: Instalar paquetes base (RedHat/Rocky)
+  dnf:
+    name: "{{ base_packages_redhat }}"
+    state: present

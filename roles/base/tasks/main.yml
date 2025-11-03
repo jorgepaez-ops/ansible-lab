@@ -1,35 +1,56 @@
-# roles/base/tasks/main.yml
-- name: Actualizar repositorios en sistemas Debian/Ubuntu
-  apt:
-    update_cache: yes
-  when: ansible_os_family == "Debian"
+## roles/base/tasks/main.yml
+#- name: Actualizar repositorios en sistemas Debian/Ubuntu
+#  apt:
+#    update_cache: yes
+#  when: ansible_os_family == "Debian"
+#
+#- name: Actualizar repositorios en sistemas RedHat/Rocky
+#  dnf:
+#    name: "*"
+#    state: latest
+#  when: ansible_os_family == "RedHat"
+#
+#- name: Instalar utilidades básicas (Debian/Ubuntu)
+#  apt:
+#    name:
+#      - htop
+#      - curl
+#      - vim
+#    state: present
+#  when: ansible_os_family == "Debian"
+##  notify: Reiniciar servicio SSH
+#
+#- name: Instalar utilidades básicas (RedHat/Rocky)
+#  dnf:
+#    name:
+#      - htop
+#      - vim-enhanced
+#    state: present
+#  when: ansible_os_family == "RedHat"
+##  notify: Reiniciar servicio SSH
+#
+#- name: Personalizar mensaje de login
+#  template:
+#    src: motd.j2
+#    dest: /etc/motd
+---
+- name: Cargar variables según sistema operativo
+  include_vars: main.yml
 
-- name: Actualizar repositorios en sistemas RedHat/Rocky
-  dnf:
-    name: "*"
-    state: latest
-  when: ansible_os_family == "RedHat"
+- name: Incluir tareas para sistemas Debian/Ubuntu
+  include_tasks: ubuntu.yml
+  when: ansible_facts['os_family'] == "Debian"
 
-- name: Instalar utilidades básicas (Debian/Ubuntu)
-  apt:
-    name:
-      - htop
-      - curl
-      - vim
-    state: present
-  when: ansible_os_family == "Debian"
-#  notify: Reiniciar servicio SSH
+- name: Incluir tareas para sistemas RedHat/Rocky
+  include_tasks: redhat.yml
+  when: ansible_facts['os_family'] == "RedHat"
 
-- name: Instalar utilidades básicas (RedHat/Rocky)
-  dnf:
-    name:
-      - htop
-      - vim-enhanced
-    state: present
-  when: ansible_os_family == "RedHat"
-#  notify: Reiniciar servicio SSH
-
-- name: Personalizar mensaje de login
+- name: Configurar MOTD personalizado
   template:
     src: motd.j2
     dest: /etc/motd
+    owner: root
+    group: root
+    mode: "0644"
+  when: enable_motd | default(true)
+  notify: Reiniciar SSH si cambió MOTD
