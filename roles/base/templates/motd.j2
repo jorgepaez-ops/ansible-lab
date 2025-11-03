@@ -1,3 +1,11 @@
-Bienvenido al nodo {{ ansible_hostname }}
-Sistema operativo: {{ ansible_distribution }} {{ ansible_distribution_version }}
-Administrado por Jorge Paez
+#Bienvenido al nodo {{ ansible_hostname }}
+#Sistema operativo: {{ ansible_distribution }} {{ ansible_distribution_version }}
+#Administrado por Jorge Paez
+
+**********************************************
+ Bienvenido a {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+**********************************************
+
+Fecha actual: {{ ansible_date_time.date }}
+Host: {{ inventory_hostname }}
+Usuario: {{ ansible_user }}
