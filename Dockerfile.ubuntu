@@ -1,4 +1,6 @@
-FROM ubuntu:24.04
+#FROM ubuntu:24.04
+ARG UBUNTU_VERSION=24.04
+FROM ubuntu:${UBUNTU_VERSION}
 
 RUN apt-get update && \
     apt-get install -y openssh-server openssh-client sudo python3 python3-apt && \
@@ -12,3 +14,4 @@ RUN apt-get update && \
 
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
+
