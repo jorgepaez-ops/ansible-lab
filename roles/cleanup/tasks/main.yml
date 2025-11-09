@@ -1,0 +1,12 @@
+---
+# roles/cleanup/tasks/main.yml
+
+- name: Detener y eliminar contenedores
+  ansible.builtin.shell: docker compose down --volumes --remove-orphans
+  args:
+    chdir: "{{ playbook_dir }}"
+
+- name: Reconstruir entorno limpio
+  ansible.builtin.shell: docker compose up -d --build
+  args:
+    chdir: "{{ playbook_dir }}"
