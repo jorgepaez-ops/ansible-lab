@@ -4,3 +4,13 @@
   become: true
   roles:
     - base
+    - user
+
+- name: Limpieza del laboratorio
+  hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+
+  roles:
+    - role: cleanup
