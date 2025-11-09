@@ -1,0 +1,33 @@
+---
+# roles/user/tasks/main.yml
+
+- name: Crear usuario ansible
+  ansible.builtin.user:
+    name: ansible
+    shell: /bin/bash
+    create_home: yes
+    groups: sudo
+    state: present
+
+- name: Permitir sudo sin contraseña
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/ansible
+    content: "ansible ALL=(ALL) NOPASSWD: ALL\n"
+    mode: "0440"
+
+- name: Crear directorio .ssh
+  ansible.builtin.file:
+    path: /home/ansible/.ssh
+    state: directory
+    mode: "0700"
+    owner: ansible
+    group: ansible
+
+- name: Copiar clave pública
+  ansible.builtin.copy:
+    src: ~/.ssh/id_rsa_ansible.pub
+    dest: /home/ansible/.ssh/authorized_keys
+    owner: ansible
+    group: ansible
+    mode: "0600"
+  ignore_errors: true
