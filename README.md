@@ -1,61 +1,136 @@
-# 🧪 Laboratorio Ansible + Docker
+# 📝 Resumen del Laboratorio Ansible + Docker (Nodos Ubuntu y Rocky)
 
-Este laboratorio permite probar Ansible sobre múltiples nodos Docker con Ubuntu y Rocky Linux.  
-Incluye configuración SSH con llaves, instalación de utilidades básicas y personalización del login con neofetch.
+## 1️⃣ Objetivo
 
----
-## 🎯 Objetivo
+Este laboratorio permite probar **Ansible** sobre múltiples nodos Docker con Ubuntu y Rocky Linux, incluyendo:
 
-- Crear nodos Docker: Ubuntu 24.04, Ubuntu 22.04 y Rocky 9  
-- Configurar SSH con llaves  
-- Instalar utilidades básicas (`vim`, `htop`, `net-tools`, `iproute`, `procps`)  
-- Personalizar login con `neofetch`  
-- Gestionar todo con Ansible usando un **rol base**
+* Creación de nodos Docker: Ubuntu 24.04, Ubuntu 22.04 y Rocky 9
+* Configuración de SSH con llaves
+* Instalación de utilidades básicas (`vim`, `htop`, `net-tools`, `iproute`, `procps`)
+* Personalización del login con `neofetch`
+* Gestión de todo con Ansible usando un **rol base**
 
 ---
 
-## 📂 Estructura de archivos
+## 2️⃣ Preparación del entorno
 
-ansible-lab/  
-├── Dockerfile.ubuntu.24 → Imagen base Ubuntu 24.04  
-├── Dockerfile.ubuntu.22 → Imagen base Ubuntu 22.04  
-├── Dockerfile.rocky.9 → Imagen base Rocky Linux 9  
-├── docker-compose.yml → Levanta 3 nodos y la red virtual  
-├── inventory.ini → Inventario de Ansible usando llaves SSH  
-├── playbook.yml → Playbook principal  
-├── ansible.cfg → Configuración básica de Ansible  
-├── roles/base/tasks/main.yml → Tareas principales  
-├── roles/base/handlers/main.yml → Handlers opcionales  
-├── roles/base/templates/motd.j2 → Plantilla para mensaje de login  
-└── README.md  
+### 2.1 Instalación de Docker y Docker Compose en el host físico
+
+* Solo se instala en el **nodo físico/host**, que orquesta los contenedores (los nodos virtuales).
+
+```bash
+# Actualizar repositorios
+sudo apt update && sudo apt upgrade -y        # Ubuntu/Debian
+sudo dnf update -y                            # Rocky
+
+# Instalar Docker
+sudo apt install -y docker.io                 # Ubuntu
+sudo dnf install -y docker                    # Rocky
+
+# Habilitar y arrancar Docker
+sudo systemctl enable docker --now
+sudo systemctl status docker
+
+# Instalar Docker Compose (si no viene incluido)
+sudo apt install -y docker-compose            # Ubuntu
+sudo dnf install -y docker-compose            # Rocky
+
+# Agregar usuario actual a grupo docker (opcional)
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+* Verificar instalación:
+
+```bash
+docker --version
+docker compose version
+```
+
+> Nota: Docker Compose no se instala dentro de los nodos Docker; solo en el host físico.
 
 ---
 
-## 🐳 Preparación de los Dockerfiles
+### 2.2 SSH y llaves
 
-- Instalar `openssh-server`, `sudo`, `python3`  
-- Crear `/var/run/sshd` para iniciar SSH  
-- Configurar root con contraseña temporal (`root:root`)  
-- Generar claves host con `ssh-keygen -A`  
-- Instalar utilidades para login: `neofetch` (fallback fastfetch)  
-- Exponer puerto 22 y mapear a puertos distintos en el host
+* Crear par de llaves SSH para Ansible:
+
+```bash
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_ansible -N ""
+```
+
+* Limpiar `known_hosts` para evitar errores:
+
+```bash
+ssh-keygen -f ~/.ssh/known_hosts -R '[127.0.0.1]:2221'
+ssh-keygen -f ~/.ssh/known_hosts -R '[127.0.0.1]:2222'
+ssh-keygen -f ~/.ssh/known_hosts -R '[127.0.0.1]:2223'
+```
+
+* Copiar la llave a los nodos Docker:
+
+```bash
+ssh-copy-id -i ~/.ssh/id_rsa_ansible.pub -p 2221 root@localhost
+ssh-copy-id -i ~/.ssh/id_rsa_ansible.pub -p 2222 root@localhost
+ssh-copy-id -i ~/.ssh/id_rsa_ansible.pub -p 2223 root@localhost
+```
+
+* Verificar conectividad Ansible:
+
+```bash
+ansible all -i inventory.ini -m ping
+```
+
+---
+
+## 3️⃣ Estructura de archivos
+
+```
+ansible-lab/
+├── Dockerfile.ubuntu.24      # Imagen base Ubuntu 24.04 para nodo Docker
+├── Dockerfile.ubuntu.22      # Imagen base Ubuntu 22.04 para nodo Docker
+├── Dockerfile.rocky.9        # Imagen base Rocky Linux 9 para nodo Docker
+├── docker-compose.yml        # Levanta los contenedores (nodos) y la red virtual en host físico
+├── inventory.ini             # Inventario Ansible usando llaves SSH
+├── playbook.yml              # Playbook principal
+├── ansible.cfg               # Configuración básica de Ansible
+├── roles/base/tasks/main.yml # Tareas principales
+├── roles/base/handlers/main.yml # Handlers opcionales
+├── roles/base/templates/motd.j2 # Mensaje de login
+└── README.md
+```
+
+> Nota: Los Dockerfiles definen los **nodos virtuales**; Docker Compose se ejecuta solo en el host físico para levantar y conectar estos nodos.
+
+---
+
+## 4️⃣ Preparación de los Dockerfiles (nodos Docker)
+
+* Instalar `openssh-server`, `sudo`, `python3`
+* Crear `/var/run/sshd` para iniciar SSH
+* Configurar root con contraseña temporal (`root:root`)
+* Generar claves host con `ssh-keygen -A`
+* Instalar utilidades para login: `neofetch` (fallback fastfetch)
+* Exponer puerto 22 y mapear a puertos distintos en el host
 
 **Errores detectados y soluciones:**
 
-- `fastfetch` no encontrado → usar `neofetch`  
-- `ssh-keygen: command not found` en Rocky → instalar `openssh-clients`  
-- Conflicto `curl` en Rocky (`curl-minimal` vs `curl`) → no instalar curl en rol base  
+* `fastfetch` no encontrado → usar `neofetch`
+* `ssh-keygen: command not found` en Rocky → instalar `openssh-clients`
+* Conflicto `curl` en Rocky (`curl-minimal` vs `curl`) → no instalar curl en rol base
 
 ---
 
-## 🔧 Docker Compose
+## 5️⃣ Docker Compose (en host físico)
 
-Archivo `docker-compose.yml` define los 3 nodos, cada uno con su Dockerfile, hostname y container_name, todos en la red `ansible-net`.  
+* `docker-compose.yml` define los 3 nodos, cada uno con su Dockerfile, hostname y container_name, todos en la red `ansible-net`.
+* Puertos mapeados:
 
-**Puertos mapeados:**  
-- node1 → 2221  
-- node2 → 2222  
-- node3 → 2223  
+| Nodo  | Puerto host |
+| ----- | ----------- |
+| node1 | 2221        |
+| node2 | 2222        |
+| node3 | 2223        |
 
 **Comandos principales:**
 
@@ -64,74 +139,28 @@ docker compose build --no-cache
 docker compose up -d
 docker ps -a
 docker logs <container>
-````
+```
 
 ---
 
-## 🔑 Configuración SSH y Ansible
+## 6️⃣ Rol Base de Ansible
 
-Limpiar `known_hosts` para evitar errores de “REMOTE HOST IDENTIFICATION HAS CHANGED”:
+El rol base realiza:
 
-Si usas localhost como host
-```bash
-ssh-keygen -f ~/.ssh/known_hosts -R '[localhost]:2221'
-ssh-keygen -f ~/.ssh/known_hosts -R '[localhost]:2222'
-ssh-keygen -f ~/.ssh/known_hosts -R '[localhost]:2223'
-```
-(Opcional) Si usas 127.0.0.1 en lugar de localhost
-```bash
-ssh-keygen -f ~/.ssh/known_hosts -R '[127.0.0.1]:2221'
-ssh-keygen -f ~/.ssh/known_hosts -R '[127.0.0.1]:2222'
-ssh-keygen -f ~/.ssh/known_hosts -R '[127.0.0.1]:2223'
-```
+* Actualización de repositorios según el sistema del nodo Docker:
 
-Copiar la clave SSH de Ansible a los nodos para acceso sin contraseña:
-
-```bash
-ssh-copy-id -i ~/.ssh/id_rsa_ansible.pub -p 2221 root@localhost
-ssh-copy-id -i ~/.ssh/id_rsa_ansible.pub -p 2222 root@localhost
-ssh-copy-id -i ~/.ssh/id_rsa_ansible.pub -p 2223 root@localhost
-```
-
-Verificar conectividad con Ansible:
-
-```bash
-ansible all -i inventory.ini -m ping
-```
-
-> Warnings sobre sftp/scp pueden ignorarse si los módulos funcionan correctamente.
-
-Errores comunes en esta fase:
-
-* `to use the 'ssh' connection type with passwords or pkcs11_provider, you must install sshpass` → si usamos llaves SSH, no es necesario `sshpass`.
-* `Host key verification failed` → limpiar `known_hosts` o aceptar la clave al primer login (`yes`).
-
----
-
-## ⚙️ Rol Base de Ansible
-
-El rol base se encarga de:
-
-* Actualizar repositorios según el sistema:
   * Ubuntu/Debian → `apt update`
   * Rocky → `dnf update`
+* Instalación de utilidades esenciales:
 
-* Instalar utilidades esenciales:
   * Ubuntu/Debian: `sudo`, `vim`, `htop`, `net-tools`, `iproute`, `procps`
   * Rocky: `sudo`, `vim`, `htop`, `net-tools`, `iproute`, `procps-ng`
-
-* Personalizar `.bashrc` con `neofetch` para mostrar el OS al iniciar sesión
-* Handler opcional: reiniciar SSH (omitido porque no es necesario para este laboratorio)
-
-Notas de ajuste:
-
-* Evitar reinicios innecesarios de SSH
-* Evitar conflictos de paquetes (como `curl-minimal`)
-* `become: yes` funciona, pero `true` también es aceptable
+* Personalización del `.bashrc` con `neofetch`
+* Handlers opcionales: reinicio de SSH (omitido)
 
 ---
 
-## ✅ Resultado final
+## 7️⃣ Resultado final
 
 * Contenedores levantados y accesibles vía SSH con llaves
 * Ansible puede ejecutar tareas básicas sin problemas
@@ -140,11 +169,19 @@ Notas de ajuste:
 
 ---
 
-## 🧹 Limpieza del laboratorio
-
-Para detener y eliminar los nodos y liberar recursos del host:
+## 8️⃣ Limpieza del laboratorio
 
 ```bash
 docker compose down
 docker system prune -f
 ```
+
+---
+
+## 9️⃣ Conceptos adicionales
+
+* **Arquitectura clara:** Host físico con Docker Compose orquesta contenedores que son nodos virtuales.
+* **Dockerfiles de nodos:** Cada contenedor es autónomo, con SSH y utilidades, gestionable por Ansible.
+* **SSH con Ansible:** Llaves facilitan CI/CD y automatización.
+* **Reutilización y mantenimiento:** Mantener Dockerfiles separados de roles permite escalabilidad y pipelines de prueba.
+* **Aplicación práctica:** Base para despliegue de stacks de aplicaciones, pipelines CI/CD y experimentos con AWS, ECS o EKS.
